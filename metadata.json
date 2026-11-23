@@ -1,0 +1,6 @@
+{
+  "name": "Histograms & Cumulative Frequency Exercise",
+  "description": "Interactive 22-question digital statistics exercise on histograms and cumulative frequency diagrams with 4-trial adaptive scoring and worked solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
