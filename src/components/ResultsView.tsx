@@ -40,7 +40,6 @@ interface ResultsViewProps {
   onRetryAutoSend: (forceResend?: boolean) => void;
   onJumpToPracticeQuestion: (index: number) => void;
   onResetAll: () => void;
-  onViewAnswerKey: () => void;
 }
 
 export const ResultsView: React.FC<ResultsViewProps> = ({
@@ -54,7 +53,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onRetryAutoSend,
   onJumpToPracticeQuestion,
   onResetAll,
-  onViewAnswerKey,
 }) => {
   const [copied, setCopied] = useState(false);
   const [nameWarning, setNameWarning] = useState(false);
@@ -137,14 +135,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             >
               <Download className="w-4 h-4" aria-hidden="true" />
               Download PDF Report
-            </button>
-
-            <button
-              type="button"
-              onClick={onViewAnswerKey}
-              className="px-4 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              View Answer Key
             </button>
 
             <button

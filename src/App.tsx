@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AnswerKeyView } from './components/AnswerKeyView';
 import { ExerciseWorkspace } from './components/ExerciseWorkspace';
 import { PracticeWorkspace } from './components/PracticeWorkspace';
 import { ResultsView } from './components/ResultsView';
 import {
-  ALL_QUESTIONS,
   EXERCISE_PART_QUESTIONS,
   PRACTICE_PART_QUESTIONS,
 } from './data/questions';
@@ -21,7 +19,7 @@ import {
   generatePracticePdfBase64,
 } from './utils/reportGenerator';
 
-type ActiveView = 'exercise' | 'practice' | 'answer-key' | 'results';
+type ActiveView = 'exercise' | 'practice' | 'results';
 
 export interface AutoEmailState {
   status: 'idle' | 'sending' | 'sent' | 'unconfigured' | 'error';
@@ -121,7 +119,6 @@ export default function App() {
       ? { status: 'sent', sentAt: initial.sentAt ?? undefined }
       : { status: 'idle' }
   );
-  const [isPracticeLocked, setIsPracticeLocked] = useState<boolean>(false);
   const inFlightSigRef = useRef<string | null>(null);
 
   const practiceCompleted = PRACTICE_PART_QUESTIONS.every((q) => {
@@ -461,7 +458,6 @@ export default function App() {
 
   const handleResetAll = () => {
     practiceAlarm.stop();
-    setIsPracticeLocked(false);
     setProgressMap({});
     setViolations([]);
     setSentSignature(null);
@@ -481,9 +477,6 @@ export default function App() {
     }
   };
 
-  const navLocked =
-    activeView === 'practice' && isPracticeLocked && !practiceCompleted;
-
   return (
     <div className="min-h-screen flex flex-col text-slate-900">
       {/* Strict 3-Zone Top Bar */}
@@ -492,9 +485,8 @@ export default function App() {
           {/* Zone 1: Single-element Brand Wordmark */}
           <button
             type="button"
-            disabled={navLocked}
             onClick={() => setActiveView('exercise')}
-            className="text-base sm:text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 cursor-pointer disabled:cursor-default text-left"
+            className="text-base sm:text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 cursor-pointer text-left"
           >
             Histograms &amp; Cumulative Frequency
           </button>
@@ -506,11 +498,8 @@ export default function App() {
           >
             <button
               type="button"
-              disabled={navLocked}
               onClick={() => setActiveView('exercise')}
-              className={`py-1 border-b-2 transition-colors whitespace-nowrap shrink-0 ${
-                navLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-              } ${
+              className={`py-1 border-b-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 activeView === 'exercise'
                   ? 'border-purple-800 text-slate-900'
                   : 'border-transparent text-slate-600 hover:text-slate-900'
@@ -529,33 +518,14 @@ export default function App() {
             >
               Practice
             </button>
-            <button
-              type="button"
-              disabled={navLocked}
-              onClick={() => setActiveView('answer-key')}
-              className={`py-1 border-b-2 transition-colors whitespace-nowrap shrink-0 ${
-                navLocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-              } ${
-                activeView === 'answer-key'
-                  ? 'border-purple-800 text-slate-900'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Answer Key
-            </button>
           </nav>
 
           {/* Zone 3: Primary Action */}
           <div className="flex items-center shrink-0">
             <button
               type="button"
-              disabled={navLocked}
               onClick={() => setActiveView('results')}
-              className={`px-4 py-2 text-xs font-medium text-white bg-purple-900 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
-                navLocked
-                  ? 'opacity-40 cursor-not-allowed'
-                  : 'hover:bg-purple-950 cursor-pointer'
-              }`}
+              className="px-4 py-2 text-xs font-medium text-white bg-purple-900 hover:bg-purple-950 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               Final Score
             </button>
@@ -566,13 +536,12 @@ export default function App() {
         <div className="md:hidden border-t border-slate-200 px-4 py-2 flex items-center gap-2 overflow-x-auto">
           <button
             type="button"
-            disabled={navLocked}
             onClick={() => setActiveView('exercise')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap shrink-0 ${
               activeView === 'exercise'
                 ? 'bg-purple-900 text-white'
                 : 'text-slate-600 bg-slate-100'
-            } disabled:opacity-40`}
+            }`}
           >
             Exercise
           </button>
@@ -586,18 +555,6 @@ export default function App() {
             }`}
           >
             Practice
-          </button>
-          <button
-            type="button"
-            disabled={navLocked}
-            onClick={() => setActiveView('answer-key')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap shrink-0 ${
-              activeView === 'answer-key'
-                ? 'bg-purple-900 text-white'
-                : 'text-slate-600 bg-slate-100'
-            } disabled:opacity-40`}
-          >
-            Answer Key
           </button>
         </div>
       </header>
@@ -631,23 +588,12 @@ export default function App() {
             currentIndex={practiceIndex}
             progressMap={progressMap}
             violations={violations}
-            isLocked={isPracticeLocked}
-            onSetLocked={setIsPracticeLocked}
             onRecordViolation={handleRecordViolation}
             onSelectQuestion={setPracticeIndex}
             onSubmitMcqAnswer={handlePracticeMcqSubmit}
             onSubmitEssayAnswer={handlePracticeEssaySubmit}
             onRevealAnswer={handleRevealAnswer}
             onFinishPractice={() => setActiveView('results')}
-          />
-        )}
-
-        {activeView === 'answer-key' && (
-          <AnswerKeyView
-            exerciseQuestions={EXERCISE_PART_QUESTIONS}
-            practiceQuestions={PRACTICE_PART_QUESTIONS}
-            practiceCompleted={practiceCompleted || ALL_QUESTIONS.length === 0}
-            onOpenQuestion={handleOpenQuestion}
           />
         )}
 
@@ -665,7 +611,6 @@ export default function App() {
             }}
             onJumpToPracticeQuestion={(idx) => handleOpenQuestion('practice', idx)}
             onResetAll={handleResetAll}
-            onViewAnswerKey={() => setActiveView('answer-key')}
           />
         )}
       </main>
